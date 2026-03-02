@@ -103,6 +103,30 @@ func TestFetchFromFile_EmptyArray(t *testing.T) {
 	}
 }
 
+func TestFetchFromFile_UsesFromFieldAsAuthor(t *testing.T) {
+	path := writeTempFile(t, `[{"text": "Django format quote", "from": "Django Author"}]`)
+
+	q, err := FetchFromFile(path)
+	if err != nil {
+		t.Fatalf("FetchFromFile: %v", err)
+	}
+	if q.Text != "Django format quote" {
+		t.Errorf("text = %q, want %q", q.Text, "Django format quote")
+	}
+	if q.Author != "Django Author" {
+		t.Errorf("author = %q, want %q", q.Author, "Django Author")
+	}
+}
+
+func TestFetchFromFile_MissingAuthorAndFrom(t *testing.T) {
+	path := writeTempFile(t, `[{"text": "Quote without author"}]`)
+
+	_, err := FetchFromFile(path)
+	if err == nil {
+		t.Error("expected error when quote has no author/from")
+	}
+}
+
 func TestFetchFromFile_NormalizesSmartQuotes(t *testing.T) {
 	path := writeTempFile(t, `[{"text": "\u201cSmart\u201d", "author": "Author"}]`)
 

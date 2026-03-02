@@ -85,7 +85,7 @@ if err != nil {
 
 #### `FetchFromFile(path string) (Quote, error)`
 
-Reads a random quote from a local JSON file. The file must contain an array of objects with `text` and `author` fields.
+Reads a random quote from a local JSON file. The file must contain an array of objects with a `text` field and either an `author` field or a `from` field.
 
 ```go
 q, err := quotes.FetchFromFile("quotes.json")
@@ -121,12 +121,26 @@ text := quotes.NormalizeSmartQuotes("\u201cHello\u201d")
 
 ## JSON File Format
 
-Both local files and the embedded collection use the same format:
+The parser accepts two compatible formats for author name:
+
+- Preferred: `author`
+- Compatible alias: `from` (used by some existing Django quote files)
+
+### Format A (preferred)
 
 ```json
 [
   {"text": "The only way to do great work is to love what you do.", "author": "Steve Jobs"},
   {"text": "Stay hungry, stay foolish.", "author": "Steve Jobs"}
+]
+```
+
+### Format B (compatible alias)
+
+```json
+[
+    {"text": "The only way to do great work is to love what you do.", "from": "Steve Jobs"},
+    {"text": "Stay hungry, stay foolish.", "from": "Steve Jobs"}
 ]
 ```
 
@@ -148,10 +162,10 @@ FetchRandom()
 go test ./... -v
 ```
 
-21 tests covering:
+Test suite covers:
 - Smart quote normalization (6 sub-tests)
 - Embedded quotes (2 tests)
-- File loading (5 tests: success, missing, invalid JSON, empty, normalization)
+- File loading (including `author` and `from` compatibility)
 - API fetching (6 tests: success, server error, empty, invalid JSON, timeout, normalization)
 - FetchRandom fallback chain (3 tests)
 - Options (2 tests)

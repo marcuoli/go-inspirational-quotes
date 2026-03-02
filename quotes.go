@@ -45,6 +45,12 @@ type Quote struct {
 	Author string `json:"author"`
 }
 
+type quoteJSON struct {
+	Text   string `json:"text"`
+	Author string `json:"author"`
+	From   string `json:"from"`
+}
+
 // config holds options for FetchRandom.
 type config struct {
 	timeout      time.Duration
@@ -185,15 +191,27 @@ func NormalizeSmartQuotes(s string) string {
 
 // parseAndPick parses a JSON array of quotes and returns one at random.
 func parseAndPick(raw []byte) (Quote, error) {
-	var items []Quote
+	var items []quoteJSON
 	if err := json.Unmarshal(raw, &items); err != nil {
 		return Quote{}, fmt.Errorf("parse quotes: %w", err)
 	}
 	if len(items) == 0 {
 		return Quote{}, fmt.Errorf("quotes collection is empty")
 	}
-	q := items[rand.IntN(len(items))]
-	q.Text = NormalizeSmartQuotes(q.Text)
+	picked := items[rand.IntN(len(items))]
+	author := strings.TrimSpace(picked.Author)
+	if author == "" {
+		author = strings.TrimSpace(picked.From)
+	}
+
+	q := Quote{
+		Text:   NormalizeSmartQuotes(strings.TrimSpace(picked.Text)),
+		Author: author,
+	}
+	if q.Text == "" || q.Author == "" {
+		return Quote{}, fmt.Errorf("quote entry is missing required fields")
+	}
+
 	return q, nil
 }
 
