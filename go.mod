@@ -1,3 +1,3 @@
 module github.com/marcuoli/go-inspirational-quotes
 
-go 1.27.1
+go 1.27.2
